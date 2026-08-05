@@ -467,6 +467,7 @@ function exitGame() {
   restartHintEl.classList.add("hidden");
   nameEntryEl.classList.add("hidden");
   leaderboardPanelEl.classList.add("hidden");
+  exitBtnEl.classList.add("hidden");
 }
 
 
@@ -766,7 +767,7 @@ for (const btn of document.querySelectorAll(".tc-btn")) {
 }
 
 document.getElementById("canvas-wrapper").addEventListener("click", (e) => {
-  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn, #exit-btn")) return;
+  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn")) return;
   if (gameState === GAME_STATE.START || gameState === GAME_STATE.GAME_OVER) startNewGame();
 });
 
@@ -888,6 +889,7 @@ function update(dt) {
       break;
     case GAME_STATE.READY:
       overlayEl.classList.add("hidden");
+      exitBtnEl.classList.remove("hidden");
       stateTimer -= dt;
       if (stateTimer <= 0) gameState = GAME_STATE.PLAYING;
       break;
@@ -908,6 +910,7 @@ function update(dt) {
           }
           showOverlay("GAME OVER", `Puntaje final: ${score}`);
           restartHintEl.classList.remove("hidden");
+          exitBtnEl.classList.add("hidden");
           showNameEntry();
         } else {
           resetPositions();
