@@ -298,7 +298,7 @@ class Ghost {
   chooseDirection(pacman, blinky) {
     const options = [];
     for (const d of TURN_PRIORITY) {
-      if (d === REVERSE[this.dir.name] && this.state !== "EATEN") continue;
+      if (d === REVERSE[this.dir.name]) continue;
       const nc = this.col + d.x;
       const nr = this.row + d.y;
       if (isOpen(nc, nr, true)) options.push(d);
