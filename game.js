@@ -457,6 +457,18 @@ function startNewGame() {
   SFX.startJingle();
 }
 
+function exitGame() {
+  if (gameState === GAME_STATE.START || gameState === GAME_STATE.GAME_OVER) return;
+  if (!confirm("¿Seguro que quieres salir? Perderás tu progreso actual.")) return;
+  gameState = GAME_STATE.START;
+  showOverlay("PAC-MAN", "Presiona ENTER o toca la pantalla para jugar");
+  overlayControlsEl.classList.remove("hidden");
+  rankingBtnEl.classList.remove("hidden");
+  restartHintEl.classList.add("hidden");
+  nameEntryEl.classList.add("hidden");
+  leaderboardPanelEl.classList.add("hidden");
+}
+
 
 const scoreEl = document.getElementById("score");
 const highScoreEl = document.getElementById("high-score");
@@ -475,6 +487,7 @@ const leaderboardNoteEl = document.getElementById("leaderboard-note");
 const closeLeaderboardBtnEl = document.getElementById("close-leaderboard-btn");
 const rankingBtnEl = document.getElementById("ranking-btn");
 const restartHintEl = document.getElementById("restart-hint");
+const exitBtnEl = document.getElementById("exit-btn");
 
 function updateHUD() {
   scoreEl.textContent = String(score).padStart(2, "0");
@@ -753,9 +766,11 @@ for (const btn of document.querySelectorAll(".tc-btn")) {
 }
 
 document.getElementById("canvas-wrapper").addEventListener("click", (e) => {
-  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn")) return;
+  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn, #exit-btn")) return;
   if (gameState === GAME_STATE.START || gameState === GAME_STATE.GAME_OVER) startNewGame();
 });
+
+exitBtnEl.addEventListener("click", exitGame);
 
 // ---------- Overlay ----------
 function showOverlay(title, message) {
