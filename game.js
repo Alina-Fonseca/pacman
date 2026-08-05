@@ -465,6 +465,16 @@ const livesIconsEl = document.getElementById("lives-icons");
 const overlayEl = document.getElementById("overlay");
 const overlayTitleEl = document.getElementById("overlay-title");
 const overlayMessageEl = document.getElementById("overlay-message");
+const overlayControlsEl = document.getElementById("overlay-controls");
+const nameEntryEl = document.getElementById("name-entry");
+const nameInputEl = document.getElementById("name-input");
+const submitScoreBtnEl = document.getElementById("submit-score-btn");
+const leaderboardPanelEl = document.getElementById("leaderboard-panel");
+const leaderboardListEl = document.getElementById("leaderboard-list");
+const leaderboardNoteEl = document.getElementById("leaderboard-note");
+const closeLeaderboardBtnEl = document.getElementById("close-leaderboard-btn");
+const rankingBtnEl = document.getElementById("ranking-btn");
+const restartHintEl = document.getElementById("restart-hint");
 
 function updateHUD() {
   scoreEl.textContent = String(score).padStart(2, "0");
@@ -717,6 +727,14 @@ function setDirection(name) {
 }
 
 window.addEventListener("keydown", (e) => {
+  if (document.activeElement === nameInputEl) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleScoreSubmit();
+    }
+    return;
+  }
+
   const key = e.key.toLowerCase();
   if (["arrowup", "w"].includes(key)) setDirection("UP");
   else if (["arrowdown", "s"].includes(key)) setDirection("DOWN");
@@ -734,7 +752,8 @@ for (const btn of document.querySelectorAll(".tc-btn")) {
   btn.addEventListener("click", () => setDirection(btn.dataset.dir.toUpperCase()));
 }
 
-document.getElementById("canvas-wrapper").addEventListener("click", () => {
+document.getElementById("canvas-wrapper").addEventListener("click", (e) => {
+  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn")) return;
   if (gameState === GAME_STATE.START || gameState === GAME_STATE.GAME_OVER) startNewGame();
 });
 
@@ -747,6 +766,91 @@ function showOverlay(title, message) {
 function hideOverlay() {
   overlayEl.classList.add("hidden");
 }
+
+// ---------- Ranking (Supabase) ----------
+function showNameEntry() {
+  overlayControlsEl.classList.add("hidden");
+  rankingBtnEl.classList.add("hidden");
+  leaderboardPanelEl.classList.add("hidden");
+  nameEntryEl.classList.remove("hidden");
+  nameInputEl.value = localStorage.getItem("pacman_player_name") || "";
+  submitScoreBtnEl.disabled = false;
+  submitScoreBtnEl.textContent = "GUARDAR";
+  setTimeout(() => nameInputEl.focus(), 50);
+}
+
+async function handleScoreSubmit() {
+  const raw = nameInputEl.value.trim().toUpperCase();
+  const name = (raw || "JUGADOR").slice(0, 10);
+  const finalScore = score;
+  localStorage.setItem("pacman_player_name", name);
+  submitScoreBtnEl.disabled = true;
+  submitScoreBtnEl.textContent = "GUARDANDO...";
+  await Leaderboard.submitScore(name, finalScore);
+  await showLeaderboardPanel({ name, score: finalScore });
+}
+
+async function showLeaderboardPanel(highlight) {
+  overlayControlsEl.classList.add("hidden");
+  rankingBtnEl.classList.add("hidden");
+  nameEntryEl.classList.add("hidden");
+  leaderboardPanelEl.classList.remove("hidden");
+  leaderboardNoteEl.classList.add("hidden");
+  leaderboardListEl.innerHTML = "";
+  const loading = document.createElement("li");
+  loading.className = "lb-loading";
+  loading.textContent = "Cargando...";
+  leaderboardListEl.appendChild(loading);
+
+  const rows = await Leaderboard.getTopScores(10);
+  leaderboardListEl.innerHTML = "";
+
+  if (!rows || rows.length === 0) {
+    const li = document.createElement("li");
+    li.className = "lb-empty";
+    li.textContent = rows === null ? "No se pudo cargar el ranking" : "Sin puntajes todavía";
+    leaderboardListEl.appendChild(li);
+    return;
+  }
+
+  let found = false;
+  rows.forEach((row, i) => {
+    const li = document.createElement("li");
+    li.className = "lb-row";
+    if (highlight && !found && row.name === highlight.name && row.score === highlight.score) {
+      li.classList.add("lb-me");
+      found = true;
+    }
+    const rank = document.createElement("span");
+    rank.className = "lb-rank";
+    rank.textContent = String(i + 1);
+    const name = document.createElement("span");
+    name.className = "lb-name";
+    name.textContent = row.name;
+    const sc = document.createElement("span");
+    sc.className = "lb-score";
+    sc.textContent = row.score;
+    li.append(rank, name, sc);
+    leaderboardListEl.appendChild(li);
+  });
+
+  if (highlight && !found) {
+    leaderboardNoteEl.textContent = `Tu puntaje (${highlight.score}) no alcanzó el Top 10, ¡sigue intentando!`;
+    leaderboardNoteEl.classList.remove("hidden");
+  }
+}
+
+function hideLeaderboardPanel() {
+  leaderboardPanelEl.classList.add("hidden");
+  if (gameState !== GAME_STATE.GAME_OVER) {
+    overlayControlsEl.classList.remove("hidden");
+    rankingBtnEl.classList.remove("hidden");
+  }
+}
+
+submitScoreBtnEl.addEventListener("click", handleScoreSubmit);
+closeLeaderboardBtnEl.addEventListener("click", hideLeaderboardPanel);
+rankingBtnEl.addEventListener("click", () => showLeaderboardPanel());
 
 // ---------- Loop principal ----------
 let lastTime = performance.now();
@@ -787,7 +891,9 @@ function update(dt) {
             highScore = score;
             localStorage.setItem("pacman_high_score", String(highScore));
           }
-          showOverlay("GAME OVER", `Puntaje final: ${score}  —  Presiona ENTER para reiniciar`);
+          showOverlay("GAME OVER", `Puntaje final: ${score}`);
+          restartHintEl.classList.remove("hidden");
+          showNameEntry();
         } else {
           resetPositions();
           gameState = GAME_STATE.READY;

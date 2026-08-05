@@ -31,10 +31,31 @@
       <div id="overlay" class="overlay">
         <div id="overlay-title" class="overlay-title">PAC-MAN</div>
         <div id="overlay-message" class="overlay-message">Presiona ENTER o toca la pantalla para jugar</div>
-        <div class="overlay-controls">
+
+        <div id="name-entry" class="name-entry hidden">
+          <p class="name-entry-label">¡Guarda tu puntaje!</p>
+          <input id="name-input" class="name-input" maxlength="10" autocomplete="off" placeholder="TU NOMBRE">
+          <button id="submit-score-btn" class="arcade-btn" type="button">GUARDAR</button>
+        </div>
+
+        <div id="leaderboard-panel" class="leaderboard-panel hidden">
+          <div class="leaderboard-title">🏆 RANKING</div>
+          <div class="leaderboard-header">
+            <span>#</span><span>NOMBRE</span><span>PUNTOS</span>
+          </div>
+          <ol id="leaderboard-list" class="leaderboard-list"></ol>
+          <p id="leaderboard-note" class="leaderboard-note hidden"></p>
+          <button id="close-leaderboard-btn" class="arcade-btn" type="button">CERRAR</button>
+        </div>
+
+        <div id="overlay-controls" class="overlay-controls">
           Usa las flechas o WASD para moverte<br>
           M para silenciar el sonido
         </div>
+
+        <button id="ranking-btn" class="arcade-btn ranking-btn" type="button">🏆 VER RANKING</button>
+
+        <div id="restart-hint" class="restart-hint hidden">Presiona ENTER para jugar de nuevo</div>
       </div>
     </div>
 
@@ -57,6 +78,8 @@
 
   <script src="maze.js"></script>
   <script src="audio.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="leaderboard.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
