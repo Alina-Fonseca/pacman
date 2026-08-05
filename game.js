@@ -459,7 +459,11 @@ function startNewGame() {
 
 function exitGame() {
   if (gameState === GAME_STATE.START || gameState === GAME_STATE.GAME_OVER) return;
-  if (!confirm("¿Seguro que quieres salir? Perderás tu progreso actual.")) return;
+  exitConfirmEl.classList.remove("hidden");
+}
+
+function confirmExitYes() {
+  exitConfirmEl.classList.add("hidden");
   gameState = GAME_STATE.START;
   showOverlay("PAC-MAN", "Presiona ENTER o toca la pantalla para jugar");
   overlayControlsEl.classList.remove("hidden");
@@ -468,6 +472,10 @@ function exitGame() {
   nameEntryEl.classList.add("hidden");
   leaderboardPanelEl.classList.add("hidden");
   exitBtnEl.classList.add("hidden");
+}
+
+function confirmExitNo() {
+  exitConfirmEl.classList.add("hidden");
 }
 
 
@@ -489,6 +497,9 @@ const closeLeaderboardBtnEl = document.getElementById("close-leaderboard-btn");
 const rankingBtnEl = document.getElementById("ranking-btn");
 const restartHintEl = document.getElementById("restart-hint");
 const exitBtnEl = document.getElementById("exit-btn");
+const exitConfirmEl = document.getElementById("exit-confirm");
+const exitConfirmYesEl = document.getElementById("exit-confirm-yes");
+const exitConfirmNoEl = document.getElementById("exit-confirm-no");
 
 function updateHUD() {
   scoreEl.textContent = String(score).padStart(2, "0");
@@ -767,11 +778,13 @@ for (const btn of document.querySelectorAll(".tc-btn")) {
 }
 
 document.getElementById("canvas-wrapper").addEventListener("click", (e) => {
-  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn")) return;
+  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn, #exit-confirm")) return;
   if (gameState === GAME_STATE.START || gameState === GAME_STATE.GAME_OVER) startNewGame();
 });
 
 exitBtnEl.addEventListener("click", exitGame);
+exitConfirmYesEl.addEventListener("click", confirmExitYes);
+exitConfirmNoEl.addEventListener("click", confirmExitNo);
 
 // ---------- Overlay ----------
 function showOverlay(title, message) {
@@ -883,6 +896,7 @@ function loop(now) {
 }
 
 function update(dt) {
+  if (!exitConfirmEl.classList.contains("hidden")) return;
   switch (gameState) {
     case GAME_STATE.START:
       hideOverlayIfNeeded(false);
