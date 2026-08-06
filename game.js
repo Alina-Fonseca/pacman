@@ -21,7 +21,7 @@ const GHOST_HOUSE_SPEED = 3.2;
 const POINTS_PELLET = 10;
 const POINTS_POWER = 50;
 const GHOST_EAT_SCORES = [200, 400, 800, 1600];
-const EXTRA_LIFE_SCORE = 10000;
+const EXTRA_LIFE_SCORE_BY_DIFFICULTY = { easy: 5000, normal: 10000, hard: 20000 };
 
 // Duraciones de scatter/chase (segundos) - patrón clásico simplificado
 const MODE_SCHEDULE = [
@@ -47,6 +47,8 @@ let highScore = parseInt(localStorage.getItem("pacman_high_score") || "0", 10);
 let lives = 3;
 let level = 1;
 let extraLifeAwarded = false;
+let difficulty = localStorage.getItem("pacman_difficulty") || "normal";
+let EXTRA_LIFE_SCORE = EXTRA_LIFE_SCORE_BY_DIFFICULTY[difficulty];
 
 const GAME_STATE = {
   START: "START",
@@ -467,6 +469,7 @@ function confirmExitYes() {
   gameState = GAME_STATE.START;
   showOverlay("PAC-MAN", "Presiona ENTER o toca la pantalla para jugar");
   overlayControlsEl.classList.remove("hidden");
+  difficultySelectorEl.classList.remove("hidden");
   rankingBtnEl.classList.remove("hidden");
   restartHintEl.classList.add("hidden");
   nameEntryEl.classList.add("hidden");
@@ -487,6 +490,8 @@ const overlayEl = document.getElementById("overlay");
 const overlayTitleEl = document.getElementById("overlay-title");
 const overlayMessageEl = document.getElementById("overlay-message");
 const overlayControlsEl = document.getElementById("overlay-controls");
+const difficultySelectorEl = document.getElementById("difficulty-selector");
+const difficultyBtns = document.querySelectorAll(".difficulty-btn");
 const nameEntryEl = document.getElementById("name-entry");
 const nameInputEl = document.getElementById("name-input");
 const submitScoreBtnEl = document.getElementById("submit-score-btn");
@@ -778,7 +783,7 @@ for (const btn of document.querySelectorAll(".tc-btn")) {
 }
 
 document.getElementById("canvas-wrapper").addEventListener("click", (e) => {
-  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn, #exit-confirm")) return;
+  if (e.target.closest("#name-entry, #leaderboard-panel, #ranking-btn, #exit-confirm, #difficulty-selector")) return;
   if (gameState === GAME_STATE.START || gameState === GAME_STATE.GAME_OVER) startNewGame();
 });
 
@@ -799,6 +804,7 @@ function hideOverlay() {
 // ---------- Ranking (Supabase) ----------
 function showNameEntry() {
   overlayControlsEl.classList.add("hidden");
+  difficultySelectorEl.classList.add("hidden");
   rankingBtnEl.classList.add("hidden");
   leaderboardPanelEl.classList.add("hidden");
   nameEntryEl.classList.remove("hidden");
@@ -821,6 +827,7 @@ async function handleScoreSubmit() {
 
 async function showLeaderboardPanel(highlight) {
   overlayControlsEl.classList.add("hidden");
+  difficultySelectorEl.classList.add("hidden");
   rankingBtnEl.classList.add("hidden");
   nameEntryEl.classList.add("hidden");
   leaderboardPanelEl.classList.remove("hidden");
@@ -873,6 +880,7 @@ function hideLeaderboardPanel() {
   leaderboardPanelEl.classList.add("hidden");
   if (gameState !== GAME_STATE.GAME_OVER) {
     overlayControlsEl.classList.remove("hidden");
+    difficultySelectorEl.classList.remove("hidden");
     rankingBtnEl.classList.remove("hidden");
   }
 }
@@ -880,6 +888,24 @@ function hideLeaderboardPanel() {
 submitScoreBtnEl.addEventListener("click", handleScoreSubmit);
 closeLeaderboardBtnEl.addEventListener("click", hideLeaderboardPanel);
 rankingBtnEl.addEventListener("click", () => showLeaderboardPanel());
+
+// ---------- Selector de dificultad ----------
+function updateDifficultyUI() {
+  difficultyBtns.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.difficulty === difficulty);
+  });
+}
+
+difficultyBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    difficulty = btn.dataset.difficulty;
+    localStorage.setItem("pacman_difficulty", difficulty);
+    EXTRA_LIFE_SCORE = EXTRA_LIFE_SCORE_BY_DIFFICULTY[difficulty];
+    updateDifficultyUI();
+  });
+});
+
+updateDifficultyUI();
 
 // ---------- Loop principal ----------
 let lastTime = performance.now();
