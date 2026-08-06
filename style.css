@@ -119,48 +119,6 @@ html, body {
   line-height: 1.8;
 }
 
-.difficulty-selector {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.difficulty-label {
-  margin: 0;
-  font-size: 9px;
-  color: #00ffff;
-  letter-spacing: 1px;
-}
-
-.difficulty-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.difficulty-btn {
-  background: transparent;
-  color: #ffff00;
-  border: 2px solid #ffff00;
-  font-size: 9px;
-  padding: 8px 10px;
-  line-height: 1.6;
-}
-
-.difficulty-btn:hover {
-  background: rgba(255, 255, 0, 0.15);
-}
-
-.difficulty-btn.active {
-  background: #ffff00;
-  color: #000;
-}
-
-.difficulty-sub {
-  font-size: 7px;
-  opacity: 0.85;
-}
-
 .hidden {
   display: none !important;
 }
